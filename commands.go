@@ -162,6 +162,10 @@ func (cmd Command) Run(label string, cmdline ...string) error {
 	w.flush()
 	q.Cleanup()
 
+	if err != nil {
+		log.Printf("Run failed: %v %v\n", exe.Env, exe.Args)
+	}
+
 	return err
 }
 
