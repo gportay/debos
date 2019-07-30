@@ -41,6 +41,8 @@ Supported actions
 
 - debootstrap -- https://godoc.org/github.com/go-debos/debos/actions#hdr-Debootstrap_Action
 
+- pacman -- https://godoc.org/github.com/go-debos/debos/actions#hdr-Pacman_Action
+
 - pactstrap -- https://godoc.org/github.com/go-debos/debos/actions#hdr-Pacstrap_Action
 
 - download -- https://godoc.org/github.com/go-debos/debos/actions#hdr-Download_Action
@@ -112,6 +114,8 @@ func (y *YamlAction) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		y.Action = &RunAction{}
 	case "apt":
 		y.Action = &AptAction{}
+	case "pacman":
+		y.Action = &PacmanAction{}
 	case "ostree-commit":
 		y.Action = &OstreeCommitAction{}
 	case "ostree-deploy":
