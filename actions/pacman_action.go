@@ -27,7 +27,7 @@ type PacmanAction struct {
 func (p *PacmanAction) Run(context *debos.DebosContext) error {
 	p.LogStart()
 
-	pacmanOptions := []string{"pacman", "--noconfirm", "-Syu"}
+	pacmanOptions := []string{"pacman", "--noconfirm", "--disable-download-timeout", "-Syu"}
 	pacmanOptions = append(pacmanOptions, p.Packages...)
 
 	c := debos.NewChrootCommandForContext(*context)
