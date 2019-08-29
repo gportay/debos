@@ -46,6 +46,7 @@ GPGDir   = %[1]s/etc/pacman.d/gnupg/
 HookDir  = %[1]s/etc/pacman.d/hooks/
 HoldPkg  = pacman glibc
 Architecture = auto
+Color
 CheckSpace
 SigLevel = Required DatabaseOptional TrustAll
 `
@@ -65,6 +66,7 @@ type PacstrapAction struct {
 	debos.BaseAction `yaml:",inline"`
 	Repositories []Repository
 	Packages     []string
+	Config       string `yaml:"config"`
 }
 
 func (d *PacstrapAction) Run(context *debos.DebosContext) error {
@@ -96,6 +98,14 @@ func (d *PacstrapAction) Run(context *debos.DebosContext) error {
 	err = os.MkdirAll(path.Join(context.Rootdir, "etc", "pacman.d", "gnupg"), 0755)
 	if err != nil {
 		return fmt.Errorf("Couldn't create etc/pacman.d/gnupg in image: %v", err)
+	}
+
+	// Copy pacman.conf file
+	if len(d.Config) > 0 {
+		err = debos.CopyFile(path.Join(context.RecipeDir, d.Config), path.Join(context.Scratchdir, "pacman.conf"), 0644)
+		if err != nil {
+			return fmt.Errorf("Couldn't copy pacman config: %v", err)
+		}
 	}
 
 	// Run pacman-key
