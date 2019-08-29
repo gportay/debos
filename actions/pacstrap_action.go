@@ -6,6 +6,7 @@ Construct the target rootfs with pacstrap tool.
 Yaml syntax:
  - action: pacstrap
    repositories: <list of repositories>
+   packages: <list of packages>
 
 Mandatory properties:
 
@@ -17,6 +18,15 @@ Yaml syntax for repositories:
  repositories:
    - name: repository name
      server: server url
+
+Optional properties:
+- packages -- list of packages to install
+
+Yaml syntax for packages:
+
+ packages:
+   - package name
+   - package name
 */
 package actions
 
@@ -54,6 +64,7 @@ type Repository struct {
 type PacstrapAction struct {
 	debos.BaseAction `yaml:",inline"`
 	Repositories []Repository
+	Packages     []string
 }
 
 func (d *PacstrapAction) Run(context *debos.DebosContext) error {
@@ -102,6 +113,9 @@ func (d *PacstrapAction) Run(context *debos.DebosContext) error {
 
 	// Run pacstrap
 	cmdline = []string{"pacstrap", "-GM", "-C", configPath, context.Rootdir}
+	if len(d.Packages) != 0 {
+		cmdline = append(cmdline, d.Packages...)
+	}
 	err = debos.Command{}.Run("Pacstrap", cmdline...)
 	if err != nil {
 		log := path.Join(context.Rootdir, "var/log/pacman.log")
