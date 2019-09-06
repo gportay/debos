@@ -116,6 +116,7 @@ Layout example for Raspberry PI 3:
        start: 0%
        end: 64MB
      - name: root
+       label: rootfs
        fs: ext4
        start: 64MB
        end: 100%
@@ -144,6 +145,7 @@ import (
 type Partition struct {
 	number   int
 	Name     string
+	Label    string
 	Start    string
 	End      string
 	FS       string
@@ -263,30 +265,33 @@ func (i ImagePartitionAction) PreMachine(context *debos.DebosContext, m *fakemac
 }
 
 func (i ImagePartitionAction) formatPartition(p *Partition, context debos.DebosContext) error {
-	label := fmt.Sprintf("Formatting partition %d", p.number)
 	path := i.getPartitionDevice(p.number, context)
 
 	cmdline := []string{}
+	label := p.Label
+	if (len(label) == 0) {
+		label = p.Name
+	}
 	switch p.FS {
 	case "vfat":
-		cmdline = append(cmdline, "mkfs.vfat", "-F32", "-n", p.Name)
+		cmdline = append(cmdline, "mkfs.vfat", "-F32", "-n", label)
 	case "btrfs":
 		// Force formatting to prevent failure in case if partition was formatted already
-		cmdline = append(cmdline, "mkfs.btrfs", "-L", p.Name, "-f")
+		cmdline = append(cmdline, "mkfs.btrfs", "-L", label, "-f")
 		if len(p.Features) > 0 {
 			cmdline = append(cmdline, "-O", strings.Join(p.Features, ","))
 		}
 	case "hfs":
-		cmdline = append(cmdline, "mkfs.hfs", "-h", "-v", p.Name)
+		cmdline = append(cmdline, "mkfs.hfs", "-h", "-v", label)
 	case "hfsplus":
-		cmdline = append(cmdline, "mkfs.hfsplus", "-v", p.Name)
+		cmdline = append(cmdline, "mkfs.hfsplus", "-v", label)
 	case "hfsx":
-		cmdline = append(cmdline, "mkfs.hfsplus", "-s", "-v", p.Name)
+		cmdline = append(cmdline, "mkfs.hfsplus", "-s", "-v", label)
 		// hfsx is case-insensitive hfs+, should be treated as "normal" hfs+ from now on
 		p.FS = "hfsplus"
 	case "none":
 	default:
-		cmdline = append(cmdline, fmt.Sprintf("mkfs.%s", p.FS), "-L", p.Name)
+		cmdline = append(cmdline, fmt.Sprintf("mkfs.%s", p.FS), "-L", label)
 		if len(p.Features) > 0 {
 			cmdline = append(cmdline, "-O", strings.Join(p.Features, ","))
 		}
@@ -295,6 +300,7 @@ func (i ImagePartitionAction) formatPartition(p *Partition, context debos.DebosC
 	if len(cmdline) != 0 {
 		cmdline = append(cmdline, path)
 
+		label := fmt.Sprintf("Formatting partition %d", p.number)
 		cmd := debos.Command{}
 		if err := cmd.Run(label, cmdline...); err != nil {
 			return err

@@ -122,7 +122,7 @@ func (d *PacstrapAction) Run(context *debos.DebosContext) error {
 	}
 
 	// Run pacstrap
-	cmdline = []string{"pacstrap", "-GM", "-C", configPath, context.Rootdir}
+	cmdline = []string{"pacstrap", "-M", "-C", configPath, context.Rootdir}
 	if len(d.Packages) != 0 {
 		cmdline = append(cmdline, d.Packages...)
 	}
